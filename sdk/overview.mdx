@@ -1,0 +1,88 @@
+---
+title: "Python SDK"
+description: "Build AI agents that use Draft as their project management layer"
+---
+
+## Overview
+
+The Draft SDK lets external AI agents create goals, generate tickets, monitor execution, and review results — all programmatically. Agents interact with Draft the same way a human would, but through code.
+
+## Install
+
+```bash
+pip install draft-sdk
+```
+
+Requires Python 3.10+ and a running Draft instance.
+
+## Quick Start
+
+```python
+from draft_sdk import DraftClient
+
+client = DraftClient("http://localhost:8000")
+
+# One command: create goal → generate tickets → execute → wait
+result = client.run_goal("Add dark mode support", auto_approve=True, wait=True)
+
+print(f"Status: {result.status}")
+print(f"Completed: {len(result.done_tickets)}/{len(result.tickets)}")
+```
+
+That's it. The SDK handles the entire lifecycle:
+
+1. Creates a goal from your description
+2. Generates actionable tickets using AI
+3. Approves tickets automatically
+4. Executes each ticket in an isolated git worktree
+5. Runs verification (tests, lints)
+6. Auto-approves passing revisions
+7. Returns the final result
+
+## Agentic-First Design
+
+Draft is built for agents. The SDK exposes the same API surface that the web UI uses, so agents are first-class citizens:
+
+<CardGroup cols={2}>
+  <Card title="Resource-Based API" icon="cube">
+    `client.goals`, `client.tickets`, `client.jobs`, `client.revisions` — mirrors the REST API structure.
+  </Card>
+  <Card title="Polling Built In" icon="clock">
+    `client.jobs.wait()` and `client.run_goal(wait=True)` handle polling automatically with configurable timeouts.
+  </Card>
+  <Card title="Progress Callbacks" icon="bell">
+    Pass `on_progress` to get real-time events as the pipeline progresses.
+  </Card>
+  <Card title="Full Control" icon="sliders">
+    Use the high-level `run_goal()` or go granular with individual resource methods.
+  </Card>
+</CardGroup>
+
+## Authentication
+
+When Draft runs with auth enabled (`AUTH_ENABLED=true`), pass a JWT token:
+
+```python
+client = DraftClient("http://localhost:8000", token="your-jwt-token")
+```
+
+In development mode (default), no token is needed.
+
+## Connection
+
+```python
+# Check connectivity
+client.health()   # {"status": "ok"}
+client.version()  # {"app": "Draft", "version": "0.1.0"}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/sdk/client-reference">
+    Full reference for all resource classes and methods.
+  </Card>
+  <Card title="Examples" icon="code" href="/sdk/examples">
+    Real-world integration patterns: CI/CD, LangChain, custom agents.
+  </Card>
+</CardGroup>

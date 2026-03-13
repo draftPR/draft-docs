@@ -1,0 +1,200 @@
+---
+title: "Examples"
+description: "Real-world integration patterns for the Draft SDK"
+---
+
+## CI/CD Integration
+
+Use Draft in your CI pipeline to automatically implement issues:
+
+```python
+from draft_sdk import DraftClient
+
+client = DraftClient("http://localhost:8000", board_id="my-project")
+
+def implement_issue(issue_title: str, issue_body: str):
+    """Create a goal from a GitHub issue and implement it."""
+    result = client.run_goal(
+        title=issue_title,
+        description=issue_body,
+        auto_approve=True,
+        wait=True,
+        timeout=1800,  # 30 min max
+    )
+
+    if result.is_complete:
+        print(f"All {len(result.done_tickets)} tickets implemented!")
+    else:
+        blocked = result.blocked_tickets
+        print(f"{len(blocked)} tickets blocked — needs human review")
+
+    return result
+```
+
+## Progress Monitoring
+
+Track every step with a progress callback:
+
+```python
+import json
+from draft_sdk import DraftClient
+
+def log_progress(event: str, data):
+    print(f"[{event}] {json.dumps(data, default=str)}")
+
+client = DraftClient("http://localhost:8000")
+result = client.run_goal(
+    "Add rate limiting to API endpoints",
+    auto_approve=True,
+    on_progress=log_progress,
+)
+```
+
+Output:
+```
+[goal_created] {"goal_id": "abc123", "title": "Add rate limiting..."}
+[tickets_generated] {"count": 3}
+[tickets_approved] {"count": 3}
+[ticket_executing] {"ticket_id": "t1"}
+[poll] {"states": {"executing": 1, "planned": 2}}
+[poll] {"states": {"verifying": 1, "planned": 2}}
+[revision_approved] {"ticket_id": "t1"}
+[ticket_executing] {"ticket_id": "t2"}
+...
+[complete] {"status": "completed"}
+```
+
+## Selective Approval
+
+Review tickets before approving:
+
+```python
+from draft_sdk import DraftClient
+
+client = DraftClient("http://localhost:8000")
+
+# Create goal and generate tickets
+goal = client.goals.create(title="Refactor database layer", board_id="project-1")
+tickets = client.goals.generate_tickets(goal.id)
+
+# Review each ticket
+approved = []
+for t in tickets:
+    print(f"\n[P{t.priority}] {t.title}")
+    print(f"  {t.description[:100]}...")
+    answer = input("  Approve? (y/n): ")
+    if answer.lower() == "y":
+        approved.append(t.id)
+
+# Accept only approved tickets
+if approved:
+    client.tickets.accept(approved)
+    print(f"\nApproved {len(approved)}/{len(tickets)} tickets")
+```
+
+## Manual Execution Loop
+
+Full control over the execution pipeline:
+
+```python
+import time
+from draft_sdk import DraftClient, DraftTimeoutError
+
+client = DraftClient("http://localhost:8000")
+
+goal = client.goals.create(title="Add search feature", board_id="b1")
+tickets = client.goals.generate_tickets(goal.id)
+client.tickets.accept([t.id for t in tickets])
+
+for ticket in tickets:
+    print(f"\nExecuting: {ticket.title}")
+
+    # Execute
+    job = client.tickets.execute(ticket.id)
+    try:
+        completed = client.jobs.wait(job.id, timeout=300)
+    except DraftTimeoutError:
+        print(f"  Timed out, canceling...")
+        client.jobs.cancel(job.id)
+        continue
+
+    if completed.status != "succeeded":
+        print(f"  Failed: {completed.status}")
+        continue
+
+    # Check ticket state after execution
+    updated = client.tickets.get(ticket.id)
+    if updated.state == "needs_human":
+        # Review the revision
+        revisions = client.revisions.list(ticket.id)
+        if revisions:
+            diff = client.revisions.get_diff(revisions[0].id)
+            print(f"  Changes: {diff.stat}")
+            client.revisions.review(revisions[0].id, decision="approved")
+            print(f"  Approved!")
+
+    elif updated.state == "blocked":
+        logs = client.jobs.logs(job.id)
+        print(f"  Blocked. Last 200 chars of log: ...{logs[-200:]}")
+```
+
+## Context Manager
+
+The client supports context manager for clean resource handling:
+
+```python
+from draft_sdk import DraftClient
+
+with DraftClient("http://localhost:8000") as client:
+    result = client.run_goal("Fix login bug", auto_approve=True)
+    print(result.status)
+# Connection automatically closed
+```
+
+## Error Handling
+
+```python
+from draft_sdk import (
+    DraftClient,
+    DraftNotFoundError,
+    DraftTimeoutError,
+    DraftConnectionError,
+)
+
+client = DraftClient("http://localhost:8000")
+
+try:
+    result = client.run_goal("Add feature", wait=True, timeout=600)
+except DraftConnectionError:
+    print("Cannot connect to Draft — is the server running?")
+except DraftTimeoutError:
+    print("Goal didn't complete in time")
+    # Check progress
+    progress = client.goals.progress(goal_id)
+    print(f"Progress: {progress.completion_pct}%")
+except DraftNotFoundError as e:
+    print(f"Resource not found: {e.detail}")
+```
+
+## Multiple Boards
+
+Work with multiple repositories:
+
+```python
+from draft_sdk import DraftClient
+
+client = DraftClient("http://localhost:8000")
+
+# List available boards
+boards = client.boards.list()
+for b in boards:
+    print(f"{b.name}: {b.repo_root}")
+
+# Work on a specific board
+frontend_board = next(b for b in boards if "frontend" in b.name.lower())
+result = client.run_goal(
+    "Add loading skeletons to all pages",
+    board_id=frontend_board.id,
+    auto_approve=True,
+)
+```

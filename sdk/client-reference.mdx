@@ -1,0 +1,235 @@
+---
+title: "Client Reference"
+description: "Full API reference for the Draft Python SDK"
+---
+
+## DraftClient
+
+The main entry point. All resources are accessed through this client.
+
+```python
+from draft_sdk import DraftClient
+
+client = DraftClient(
+    base_url="http://localhost:8000",  # Draft server URL
+    token=None,                         # JWT token (optional)
+    timeout=600.0,                      # Request timeout in seconds
+    board_id=None,                      # Default board for operations
+)
+```
+
+### `run_goal()`
+
+High-level orchestration method that handles the full lifecycle.
+
+```python
+result = client.run_goal(
+    title="Add user authentication",
+    description="JWT-based auth with login/logout endpoints",
+    board_id=None,            # Uses default board
+    auto_approve=True,        # Auto-approve tickets and revisions
+    wait=True,                # Block until complete
+    poll_interval=5.0,        # Seconds between polls
+    timeout=3600.0,           # Max wait time
+    on_progress=None,         # Callback: (event, data) -> None
+)
+
+# GoalResult
+result.status        # "completed", "partial", "blocked", "no_tickets"
+result.is_complete   # True if all tickets done
+result.tickets       # list[Ticket]
+result.done_tickets  # Tickets in "done" state
+result.blocked_tickets  # Tickets in "blocked" state
+```
+
+### `health()` / `version()`
+
+```python
+client.health()    # {"status": "ok"}
+client.version()   # {"app": "Draft", "version": "0.1.0"}
+```
+
+---
+
+## client.boards
+
+```python
+# List all boards
+boards = client.boards.list()
+
+# Get a specific board
+board = client.boards.get("board-id")
+
+# Create a board
+board = client.boards.create(name="My Project", repo_root="/path/to/repo")
+
+# Get kanban view (tickets grouped by state)
+kanban = client.boards.kanban("board-id")
+
+# Delete a board
+client.boards.delete("board-id")
+```
+
+---
+
+## client.goals
+
+```python
+# Create a goal
+goal = client.goals.create(
+    title="Add dark mode",
+    description="Theme toggle with CSS variables",
+    board_id="board-id",
+    autonomy_enabled=True,
+    auto_approve_tickets=True,
+)
+
+# List goals
+goals = client.goals.list(board_id="board-id")
+
+# Get a goal
+goal = client.goals.get("goal-id")
+
+# Generate tickets from a goal (AI-powered)
+tickets = client.goals.generate_tickets("goal-id")
+
+# Get progress summary
+progress = client.goals.progress("goal-id")
+# GoalProgress: total_tickets, by_state, completion_pct, is_blocked
+
+# Update autonomy settings
+client.goals.update_autonomy("goal-id", auto_approve_revisions=True)
+
+# Delete a goal (cascades to tickets)
+client.goals.delete("goal-id")
+```
+
+---
+
+## client.tickets
+
+```python
+# List tickets (with filters)
+tickets = client.tickets.list(goal_id="goal-id", state="planned")
+
+# Get a ticket
+ticket = client.tickets.get("ticket-id")
+
+# Create a ticket manually
+ticket = client.tickets.create(
+    goal_id="goal-id",
+    title="Add login endpoint",
+    description="POST /auth/login with JWT response",
+    priority=70,
+)
+
+# Transition state
+ticket = client.tickets.transition("ticket-id", to_state="planned")
+
+# Bulk accept: PROPOSED → PLANNED
+result = client.tickets.accept(["ticket-1", "ticket-2"])
+# BulkAcceptResult: accepted, queued, skipped
+
+# Execute a ticket (creates an execute job)
+job = client.tickets.execute("ticket-id")
+
+# Verify a ticket (runs verification commands)
+job = client.tickets.verify("ticket-id")
+
+# Get event history
+events = client.tickets.events("ticket-id")
+```
+
+---
+
+## client.jobs
+
+```python
+# Get job details
+job = client.jobs.get("job-id")
+
+# List jobs
+jobs = client.jobs.list(ticket_id="ticket-id", status="running")
+
+# Get raw logs
+logs = client.jobs.logs("job-id")
+
+# Wait for job completion (polls until terminal state)
+job = client.jobs.wait("job-id", poll_interval=3.0, timeout=600.0)
+# Raises DraftTimeoutError if timeout exceeded
+
+# Cancel a job
+job = client.jobs.cancel("job-id")
+
+# Queue status
+status = client.jobs.queue_status()
+```
+
+---
+
+## client.revisions
+
+```python
+# List revisions for a ticket
+revisions = client.revisions.list("ticket-id")
+
+# Get a revision
+revision = client.revisions.get("revision-id")
+
+# Get the diff
+diff = client.revisions.get_diff("revision-id")
+# RevisionDiff: stat, patch
+
+# Submit a review
+review = client.revisions.review(
+    "revision-id",
+    decision="approved",        # or "changes_requested"
+    summary="Looks good!",
+    auto_run_fix=True,          # Re-run if changes requested
+)
+
+# Add a line comment
+comment = client.revisions.add_comment(
+    "revision-id",
+    file_path="src/auth.py",
+    line_number=42,
+    content="Should validate token expiry here",
+)
+
+# Get all comments
+comments = client.revisions.get_comments("revision-id")
+```
+
+---
+
+## client.planner
+
+```python
+# Get planner status
+status = client.planner.status()
+
+# Run a single tick (debug)
+result = client.planner.tick()
+
+# Start autopilot
+result = client.planner.start(max_duration=3600, poll_interval=5)
+
+# Emergency lock release
+client.planner.release_lock()
+```
+
+---
+
+## Exceptions
+
+```python
+from draft_sdk import (
+    DraftError,            # Base exception
+    DraftAPIError,         # Non-2xx response (has .status_code, .detail)
+    DraftNotFoundError,    # 404
+    DraftConflictError,    # 409 (idempotency)
+    DraftValidationError,  # 422
+    DraftTimeoutError,     # Polling timeout
+    DraftConnectionError,  # Cannot connect to server
+)
+```
