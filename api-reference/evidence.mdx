@@ -1,0 +1,41 @@
+---
+title: "Evidence API"
+description: "Access verification evidence (stdout, stderr, exit codes)"
+---
+
+## List Evidence for a Ticket
+
+```bash
+curl http://localhost:8000/tickets/{id}/evidence
+```
+
+Returns all evidence records linked to the ticket's jobs.
+
+## Get Evidence stdout
+
+```bash
+curl http://localhost:8000/evidence/{id}/stdout
+```
+
+Returns plain text stdout content from the verification command.
+
+## Get Evidence stderr
+
+```bash
+curl http://localhost:8000/evidence/{id}/stderr
+```
+
+Returns plain text stderr content from the verification command.
+
+## Evidence Structure
+
+Each evidence record contains:
+
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier |
+| `job_id` | The job that produced this evidence |
+| `ticket_id` | The associated ticket |
+| `command` | The verification command that was run |
+| `exit_code` | Command return code (0 = success) |
+| `created_at` | When the evidence was captured |

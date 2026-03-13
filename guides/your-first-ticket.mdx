@@ -1,0 +1,83 @@
+---
+title: "Your First Ticket"
+description: "Walk through creating a goal and watching AI implement it"
+---
+
+## Prerequisites
+
+- Draft is running (`npx draft-board`)
+- An AI executor CLI is installed (e.g., `claude`)
+- Open http://localhost:5173 in your browser
+
+## Step 1: Create a Board
+
+When you first open Draft, you'll be greeted with a setup wizard. Follow the prompts to:
+
+1. Connect a git repository
+2. Configure your executor
+3. Set up verification commands
+
+## Step 2: Create a Goal
+
+Click **"New Goal"** and describe what you want to build:
+
+> Add a /health endpoint that returns JSON with the app version and current timestamp
+
+Keep goals specific and focused. Draft works best with well-defined objectives.
+
+## Step 3: Generate Tickets
+
+Draft's AI will analyze your goal and break it into tickets. For our example, it might create:
+
+1. **Add health endpoint** — Create the route handler
+2. **Add version config** — Set up version tracking
+3. **Add tests** — Write tests for the health endpoint
+
+Review the generated tickets and approve them (move from `PROPOSED` to `PLANNED`).
+
+## Step 4: Execute
+
+Click **"Run"** on a ticket (or let the autopilot pick it up). You'll see:
+
+1. A git worktree is created for the ticket
+2. The AI agent starts implementing changes
+3. Real-time logs stream in the ticket detail panel
+
+## Step 5: Verification
+
+After the agent finishes, verification commands run automatically:
+
+- Tests pass ✅
+- Lint passes ✅
+- Ticket moves to `NEEDS_HUMAN`
+
+## Step 6: Review
+
+Open the ticket's revision panel to see:
+
+- The full diff of changes
+- File-by-file breakdown
+- Leave comments if needed
+
+**Approve** to complete the ticket, or **Request Changes** to send it back for another iteration.
+
+## Step 7: Merge
+
+Once approved, the ticket's branch is ready to merge into your base branch. Use Draft's merge workflow or merge manually via git.
+
+## Tips
+
+<CardGroup cols={2}>
+  <Card title="Be Specific" icon="bullseye">
+    Specific goals produce better tickets. "Add auth" is too vague; "Add JWT login endpoint with bcrypt password hashing" is better.
+  </Card>
+  <Card title="Start Small" icon="seedling">
+    Begin with a small, well-defined feature to learn the workflow before tackling complex goals.
+  </Card>
+  <Card title="Review the Plan" icon="magnifying-glass">
+    Always review generated tickets before executing. Edit or remove tickets that don't look right.
+  </Card>
+  <Card title="Use Verification" icon="shield-check">
+    Configure tests and lints in `draft.yaml` to catch issues before human review.
+  </Card>
+</CardGroup>

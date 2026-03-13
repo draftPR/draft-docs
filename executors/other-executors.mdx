@@ -1,0 +1,47 @@
+---
+title: "Other Executors"
+description: "Additional AI code agents supported by Draft"
+---
+
+## Supported Executors
+
+Draft's executor system is extensible. Beyond Claude Code and Cursor, Draft supports:
+
+| Executor | CLI | Description |
+|----------|-----|-------------|
+| **Codex** | `codex` | OpenAI's Codex CLI |
+| **Gemini** | `gemini` | Google's Gemini CLI |
+| **AMP** | `amp` | Sourcegraph AMP agent |
+| **Aider** | `aider` | Open source AI pair programming |
+| **Copilot** | `gh copilot` | GitHub Copilot CLI |
+| **Goose** | `goose` | Block's open source agent |
+| **Cline** | `cline` | VS Code extension agent |
+| **Amazon Q** | `q` | AWS Amazon Q Developer |
+| **OpenCode** | `opencode` | Open source coding agent |
+| **Qwen** | `qwen` | Alibaba's Qwen coding agent |
+| **Droid** | `droid` | Android-focused code agent |
+
+## Configuration
+
+Each executor is set via `draft.yaml`:
+
+```yaml
+executor_config:
+  executor_type: CODEX    # or GEMINI, AMP, AIDER, etc.
+```
+
+## Adding a New Executor
+
+Draft uses an adapter pattern for executors. Each adapter defines:
+
+1. **CLI command** — How to invoke the tool
+2. **Prompt format** — How to pass instructions
+3. **Output parsing** — How to read results
+
+Adapters live in `backend/app/executors/adapters/`. To add a new executor:
+
+1. Create a new adapter file (e.g., `my_agent.py`)
+2. Implement the executor spec interface
+3. Register it in the executor registry
+
+See the [Contributing guide](/development/contributing) for details.

@@ -1,0 +1,55 @@
+---
+title: "What is Draft?"
+description: "AI-powered local-first kanban board that uses AI agents to automatically implement tickets"
+---
+
+## Overview
+
+Draft is an autonomous delivery system for codebases. You describe features in plain English, and AI agents handle the implementation — planning, coding, testing, and reviewing — all through a visual kanban board.
+
+<CardGroup cols={2}>
+  <Card title="One Command Setup" icon="terminal">
+    Run `npx draft-board` and you're up and running. No external services required.
+  </Card>
+  <Card title="AI-Powered Execution" icon="robot">
+    Claude Code, Cursor Agent, and other AI tools implement your tickets automatically.
+  </Card>
+  <Card title="Git Worktree Isolation" icon="code-branch">
+    Each ticket runs in its own isolated git worktree for safe parallel execution.
+  </Card>
+  <Card title="Built-in Verification" icon="check-double">
+    Configurable test and lint commands verify every change before human review.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+1. **Create a Goal** — Describe a feature or improvement in plain English
+2. **Tickets Are Generated** — AI breaks the goal into actionable tickets
+3. **Agents Execute** — AI code tools implement each ticket in an isolated worktree
+4. **Changes Are Verified** — Automated tests and lints run against the changes
+5. **You Review** — Approve, request changes, or let the agent iterate
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19 + Vite + TypeScript |
+| UI Components | shadcn/ui + Tailwind CSS |
+| Backend | FastAPI (Python 3.11+) |
+| Database | SQLite + Alembic migrations |
+| Background Jobs | In-process SQLiteWorker |
+| AI Executors | Claude Code CLI, Cursor Agent, and more |
+
+## Local-First Philosophy
+
+Draft runs entirely on your machine. No cloud services, no data leaving your environment.
+
+- **SQLite** database — no Postgres or Redis needed
+- **In-process** background worker — no Celery or external queues
+- **Git worktrees** for isolation — no Docker containers per ticket
+- **Your API keys** — AI calls go directly from your machine
+
+## License
+
+Business Source License 1.1 (BSL 1.1). Free for non-commercial use including personal projects, education, and evaluation. Converts to Apache 2.0 on 2030-02-26.

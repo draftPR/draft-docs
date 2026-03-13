@@ -1,0 +1,75 @@
+---
+title: "Autopilot Mode"
+description: "Let the planner autonomously manage your ticket pipeline"
+---
+
+## Overview
+
+Draft's **Planner** (autopilot) runs on periodic ticks and autonomously manages the ticket pipeline:
+
+- Picks the highest-priority `PLANNED` ticket and executes it
+- Proposes follow-up tickets when tickets become `BLOCKED`
+- Generates reflections for completed tickets
+- Manages ticket dependencies and unblocking
+
+## Enabling Autopilot
+
+Autopilot is controlled in `draft.yaml`:
+
+```yaml
+planner_config:
+  auto_execute: true
+  model: "claude-sonnet-4-20250514"
+```
+
+## What the Planner Does
+
+### Every 2 Seconds
+
+The planner tick runs and checks:
+
+1. **Are there `PLANNED` tickets?** → Pick the highest priority one and execute
+2. **Are there `BLOCKED` tickets?** → Analyze the failure and propose follow-ups
+3. **Are there `DONE` tickets?** → Generate reflections for learning
+4. **Are dependencies resolved?** → Auto-unblock tickets whose blockers are done
+
+### Safety Boundaries
+
+The planner is intentionally limited:
+
+| Can Do | Cannot Do |
+|--------|-----------|
+| Create `PROPOSED` tickets | Transition ticket states |
+| Enqueue execute/verify jobs | Delete tickets or goals |
+| Add comments to tickets | Modify existing tickets |
+| Propose follow-ups | Override human decisions |
+
+### Rate Limits
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `max_followups_per_ticket` | 2 | Max follow-up tickets per blocked ticket |
+| `max_followups_per_tick` | 3 | Max follow-ups created per planner tick |
+
+## Concurrency Control
+
+The planner uses a `planner_locks` table to ensure only one planner instance runs at a time. This prevents race conditions when multiple processes might try to plan simultaneously.
+
+## Monitoring
+
+Watch the planner's decisions in real-time:
+
+- **Ticket Events** — Every planner action is logged as a ticket event
+- **Job Logs** — Execution and verification logs stream in the UI
+- **API** — Query planner status via `/planner/status`
+
+## Best Practices
+
+<Tip>
+  Start with `auto_execute: false` to manually approve each execution. Once you trust the pipeline, enable autopilot for fully autonomous operation.
+</Tip>
+
+- Set cost budgets on goals to prevent runaway spending
+- Review `PROPOSED` tickets before they execute
+- Monitor the first few automated runs closely
+- Use verification commands to catch issues early

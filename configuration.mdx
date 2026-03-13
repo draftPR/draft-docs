@@ -1,0 +1,108 @@
+---
+title: "Configuration"
+description: "Configure Draft with draft.yaml and environment variables"
+---
+
+## draft.yaml
+
+The main configuration file lives at the root of your repository. It controls the AI executor, verification commands, planner behavior, and more.
+
+```yaml draft.yaml
+# AI Executor Configuration
+executor_config:
+  executor_type: CLAUDE          # CLAUDE, CURSOR_AGENT, or CURSOR
+  yolo_mode: false               # Skip permission prompts (Claude CLI only)
+  yolo_allowlist: []             # Repo paths where YOLO mode is allowed
+
+# Verification Pipeline
+verify_config:
+  commands:
+    - "pytest tests/"
+    - "npm run lint"
+
+# Planner Configuration
+planner_config:
+  model: "claude-sonnet-4-20250514"   # LLM model for planning
+  auto_execute: false            # Auto-run tickets after planning
+  validate_tickets: false        # Validate generated tickets with LLM
+  max_followups_per_ticket: 2    # Max follow-up tickets per blocked ticket
+  max_followups_per_tick: 3      # Max follow-ups per planner tick
+
+# Cleanup Configuration
+cleanup_config:
+  worktree_ttl_hours: 72         # Auto-clean worktrees older than this
+```
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+
+Copy from the example file:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `APP_ENV` | Environment mode | `development` |
+| `DATABASE_URL` | SQLite database path | `sqlite+aiosqlite:///./draft.db` |
+| `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:5173` |
+| `GIT_REPO_PATH` | Git repository root | Project root |
+| `BASE_BRANCH` | Base branch for worktrees | `main` (fallback: `master`) |
+| `AUTH_SECRET_KEY` | JWT signing secret | Dev default (change in production) |
+
+### Frontend (`frontend/.env`)
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_BACKEND_URL` | Backend API URL | `http://localhost:8000` |
+
+### AI Provider Keys
+
+Set the API key for your chosen LLM provider (used by the planner):
+
+```bash
+# Anthropic (recommended)
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# OpenAI
+export OPENAI_API_KEY=sk-...
+
+# AWS Bedrock
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+<Note>
+  AI executor CLIs (Claude Code, Cursor) use their own authentication. The API keys above are only for the planner's LLM calls.
+</Note>
+
+## Executor Types
+
+| Type | CLI Required | Mode | After Execution |
+|------|-------------|------|-----------------|
+| `CLAUDE` | `claude` | Headless | Auto-verifies |
+| `CURSOR_AGENT` | `cursor` | Headless | Auto-verifies |
+| `CURSOR` | `cursor` | Interactive | Needs human review |
+
+### YOLO Mode (Claude Only)
+
+When enabled, Claude CLI runs with `--dangerously-skip-permissions`, allowing it to execute without confirmation prompts:
+
+```yaml
+executor_config:
+  executor_type: CLAUDE
+  yolo_mode: true
+  yolo_allowlist:
+    - /path/to/trusted/repo
+```
+
+<Warning>
+  Only enable YOLO mode for repositories you trust. The AI agent will have unrestricted access to run commands in the worktree.
+</Warning>

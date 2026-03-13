@@ -1,0 +1,54 @@
+---
+title: "Executor Overview"
+description: "How Draft integrates with AI code agents"
+---
+
+## What Are Executors?
+
+Executors are the AI code tools that Draft uses to implement tickets. When a ticket moves to `EXECUTING`, Draft spawns the configured executor CLI in the ticket's isolated worktree.
+
+## Supported Executors
+
+| Executor | CLI | Mode | Status |
+|----------|-----|------|--------|
+| [Claude Code](/executors/claude-code) | `claude` | Headless | Recommended |
+| [Cursor Agent](/executors/cursor-agent) | `cursor` | Headless | Supported |
+| [Other Executors](/executors/other-executors) | Various | Various | Community |
+
+## How Execution Works
+
+1. Draft creates an isolated **git worktree** for the ticket
+2. The executor CLI is spawned with the ticket's instructions as a prompt
+3. The agent reads the codebase, makes changes, and exits
+4. Draft checks the **git diff** in the worktree
+
+## Post-Execution States
+
+| Outcome | Ticket State | Reason |
+|---------|-------------|--------|
+| Success + changes detected | `VERIFYING` | Runs verification pipeline |
+| Success + no changes | `BLOCKED` | "No changes produced" |
+| CLI failure | `BLOCKED` | Error message from CLI |
+
+## Configuration
+
+Set the executor in `draft.yaml`:
+
+```yaml
+executor_config:
+  executor_type: CLAUDE
+```
+
+Draft auto-detects available CLIs on your system. If multiple executors are installed, the configured one takes precedence.
+
+## Executor Detection
+
+Draft checks for CLIs in your `PATH`:
+
+```bash
+# Check which executors Draft can find
+which claude    # Claude Code CLI
+which cursor    # Cursor CLI
+```
+
+If the configured executor isn't found, the job will fail with a clear error message.

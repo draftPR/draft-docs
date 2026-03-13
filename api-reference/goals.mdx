@@ -1,0 +1,55 @@
+---
+title: "Goals API"
+description: "Create and manage high-level objectives"
+---
+
+## Create a Goal
+
+<ParamField path="title" type="string" required>
+  Short title for the goal
+</ParamField>
+
+<ParamField path="description" type="string">
+  Detailed description of the objective
+</ParamField>
+
+```bash
+curl -X POST http://localhost:8000/goals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "User Authentication",
+    "description": "Add JWT-based auth with login/logout endpoints"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "uuid-here",
+  "title": "User Authentication",
+  "description": "Add JWT-based auth with login/logout endpoints",
+  "status": "active",
+  "created_at": "2025-01-01T00:00:00Z"
+}
+```
+
+## List Goals
+
+```bash
+curl http://localhost:8000/goals
+```
+
+## Get a Goal
+
+```bash
+curl http://localhost:8000/goals/{id}
+```
+
+## Generate Tickets from a Goal
+
+```bash
+curl -X POST http://localhost:8000/goals/{id}/generate-tickets
+```
+
+This triggers the AI ticket generation service, which analyzes the goal and creates actionable tickets.

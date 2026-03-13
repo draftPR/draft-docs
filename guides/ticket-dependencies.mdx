@@ -1,0 +1,61 @@
+---
+title: "Ticket Dependencies"
+description: "Manage execution order with a dependency DAG"
+---
+
+## Overview
+
+Tickets can depend on each other via `blocked_by_ticket_id`. This creates a **directed acyclic graph (DAG)** that controls execution order.
+
+## How Dependencies Work
+
+- A ticket **cannot execute** until its blocker reaches `DONE`
+- The planner automatically **blocks** tickets with incomplete dependencies
+- When a dependency completes, blocked tickets are **auto-unblocked**
+
+## Setting Dependencies
+
+### Via the UI
+
+Drag a ticket onto another to create a dependency, or use the ticket detail panel to set the "Blocked By" field.
+
+### Via the API
+
+```bash
+curl -X PATCH http://localhost:8000/tickets/{id} \
+  -H "Content-Type: application/json" \
+  -d '{"blocked_by_ticket_id": "other-ticket-id"}'
+```
+
+## Execution Order
+
+Draft uses **Kahn's algorithm** for topological sorting to determine execution order:
+
+1. Build a dependency graph from all tickets
+2. Find tickets with no dependencies (ready to execute)
+3. Execute in priority order
+4. When a ticket completes, check if any blocked tickets are now unblocked
+
+### Cycle Detection
+
+If circular dependencies are detected, Draft falls back to the original priority order and logs a warning.
+
+## Example
+
+```
+Ticket A: "Set up database schema"
+    ↓
+Ticket B: "Add API endpoints" (blocked by A)
+    ↓
+Ticket C: "Add frontend pages" (blocked by B)
+```
+
+Execution order: A → B → C
+
+Ticket B won't start until A reaches `DONE`. If A becomes `BLOCKED`, B stays `BLOCKED` too.
+
+## Best Practices
+
+- Keep dependency chains **short** (2-3 levels max)
+- Use dependencies for true **data/API dependencies**, not just priority ordering
+- Let the planner handle dependency management when using autopilot

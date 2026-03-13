@@ -1,0 +1,95 @@
+---
+title: "Quick Start"
+description: "Get Draft running in under a minute"
+---
+
+## Prerequisites
+
+- **Python** 3.11+
+- **Node.js** 18+
+- **Git**
+
+No external services (Redis, Postgres, Docker) required — everything runs in-process.
+
+## One Command
+
+```bash
+npx draft-board
+```
+
+This single command:
+1. Checks prerequisites (Python, Node, Git)
+2. Creates a Python virtual environment in `~/.draft/venv/`
+3. Installs backend and frontend dependencies
+4. Runs database migrations
+5. Starts both servers
+6. Opens your browser automatically
+
+## What You'll See
+
+Once running, Draft serves:
+
+| Service | URL |
+|---------|-----|
+| Frontend (Kanban Board) | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| API Documentation | http://localhost:8000/docs |
+
+Press `Ctrl+C` to stop all services gracefully.
+
+## CLI Options
+
+```bash
+npx draft-board --help
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-p, --port` | Backend server port | `8000` |
+| `--frontend-port` | Frontend dev port | `5173` |
+| `--skip-setup` | Skip dependency installation | `false` |
+| `--dev` | Force development mode (hot reload) | `false` |
+| `-v, --version` | Show version | — |
+
+## Development Setup
+
+If you're contributing to Draft or prefer manual control:
+
+```bash
+git clone https://github.com/doramirdor/draft.git
+cd draft
+make setup        # Install all dependencies
+make db-migrate   # Run database migrations
+make run          # Start backend + frontend
+```
+
+Or run services in separate terminals:
+
+```bash
+# Terminal 1
+make dev-backend   # FastAPI at http://localhost:8000
+
+# Terminal 2
+make dev-frontend  # Vite at http://localhost:5173
+```
+
+## Verify Installation
+
+```bash
+curl http://localhost:8000/health
+# {"status":"ok"}
+
+curl http://localhost:8000/version
+# {"app":"Draft","version":"0.1.0"}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Set up your AI executor, verification commands, and planner settings.
+  </Card>
+  <Card title="Your First Ticket" icon="ticket" href="/guides/your-first-ticket">
+    Walk through creating a goal and watching AI implement it.
+  </Card>
+</CardGroup>

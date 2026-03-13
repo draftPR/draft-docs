@@ -1,0 +1,92 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Draft",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "url": "https://github.com/doramirdor/draft"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "url": "https://github.com/doramirdor/draft"
+    }
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "configuration"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "concepts/boards-and-goals",
+        "concepts/tickets-and-states",
+        "concepts/workspace-isolation",
+        "concepts/verification-pipeline",
+        "concepts/revisions-and-reviews"
+      ]
+    },
+    {
+      "group": "AI Executors",
+      "pages": [
+        "executors/overview",
+        "executors/claude-code",
+        "executors/cursor-agent",
+        "executors/other-executors"
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "guides/your-first-ticket",
+        "guides/autopilot-mode",
+        "guides/ticket-dependencies",
+        "guides/merge-workflow"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/overview",
+        "api-reference/goals",
+        "api-reference/tickets",
+        "api-reference/jobs",
+        "api-reference/evidence"
+      ]
+    },
+    {
+      "group": "Development",
+      "pages": [
+        "development/architecture",
+        "development/contributing",
+        "development/troubleshooting"
+      ]
+    }
+  ],
+  "footer": {
+    "socials": {
+      "github": "https://github.com/doramirdor/draft",
+      "website": "https://trydraft.dev"
+    }
+  },
+  "seo": {
+    "indexHiddenPages": false
+  }
+}

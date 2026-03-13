@@ -1,0 +1,66 @@
+---
+title: "API Overview"
+description: "REST API for programmatic access to Draft"
+---
+
+## Base URL
+
+```
+http://localhost:8000
+```
+
+## Interactive Docs
+
+Draft auto-generates interactive API documentation via Swagger UI:
+
+**http://localhost:8000/docs**
+
+## Authentication
+
+In development mode, no authentication is required. For production deployments, Draft uses JWT tokens.
+
+## Common Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `GET` | `/version` | App version |
+
+## Response Format
+
+All endpoints return JSON. Successful responses use standard HTTP status codes:
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Created |
+| `400` | Bad request (validation error) |
+| `404` | Resource not found |
+| `409` | Conflict (idempotency violation) |
+| `429` | Rate limited |
+| `500` | Internal server error |
+
+## Idempotency
+
+LLM-powered endpoints support idempotency keys to prevent duplicate operations:
+
+```bash
+curl -X POST http://localhost:8000/tickets/{id}/run \
+  -H "X-Idempotency-Key: unique-key-123"
+```
+
+Same key + same body = returns cached result. Same key + different body = returns `409 Conflict`.
+
+## Rate Limiting
+
+LLM endpoints use cost-based rate limiting per client. If you hit a rate limit, you'll receive a `429` response with a `Retry-After` header.
+
+## WebSocket
+
+Real-time log streaming is available via WebSocket:
+
+```
+ws://localhost:8000/ws/jobs/{job_id}/logs
+```
+
+This streams job execution logs as they happen.

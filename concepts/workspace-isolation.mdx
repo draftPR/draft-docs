@@ -1,0 +1,70 @@
+---
+title: "Workspace Isolation"
+description: "Git worktrees provide safe, parallel execution for every ticket"
+---
+
+## How It Works
+
+Draft uses **git worktrees** to give each ticket its own isolated copy of the repository. This allows multiple tickets to execute in parallel without interfering with each other.
+
+```
+your-repo/
+├── .draft/
+│   └── worktrees/
+│       ├── ticket-abc/     # Isolated copy for ticket ABC
+│       │   ├── src/
+│       │   ├── tests/
+│       │   └── .draft/
+│       │       └── logs/
+│       │           └── job-123.log
+│       └── ticket-def/     # Isolated copy for ticket DEF
+│           ├── src/
+│           └── ...
+├── src/                    # Your main working tree (untouched)
+└── ...
+```
+
+## Lifecycle
+
+1. **Creation** — When a job runs, a worktree is created at `.draft/worktrees/{ticket_id}/`
+2. **Branching** — Each worktree gets a dedicated branch: `goal/{goal_id}/ticket/{ticket_id}`
+3. **Execution** — AI agent and verification commands run inside the worktree
+4. **Logging** — Job logs are written to `{worktree}/.draft/logs/{job_id}.log`
+5. **Cleanup** — When a ticket reaches `DONE` or `ABANDONED`, its worktree is automatically removed
+
+## Safety Guarantees
+
+- Your main branch is **never modified** during execution
+- Each ticket's changes are isolated to its own branch
+- The `WorktreeValidator` ensures no operations run on protected branches (main, master, develop)
+- Board's `repo_root` is always authoritative — client-provided paths are rejected
+
+## Configuration
+
+```bash
+# backend/.env
+
+# Path to the git repository (default: project root)
+GIT_REPO_PATH=/path/to/your/repo
+
+# Base branch for worktree creation (default: main, fallback: master)
+BASE_BRANCH=main
+```
+
+## Requirements
+
+- The project **must** be a git repository
+- The configured base branch must exist
+- If the directory is not a git repository, jobs run without isolation (with a warning)
+
+## Cleanup
+
+Worktrees are cleaned up automatically when:
+- A ticket reaches a **terminal state** (`DONE` or `ABANDONED`)
+- The configured **TTL expires** (default: 72 hours)
+- You manually trigger cleanup via the maintenance API
+
+```bash
+# Manual cleanup of stale worktrees
+curl -X POST http://localhost:8000/maintenance/cleanup-worktrees
+```

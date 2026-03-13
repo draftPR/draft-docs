@@ -1,0 +1,57 @@
+---
+title: "Jobs API"
+description: "Monitor and control background jobs"
+---
+
+## Get Job Details
+
+```bash
+curl http://localhost:8000/jobs/{id}
+```
+
+**Response:**
+
+```json
+{
+  "id": "job-uuid",
+  "status": "running",
+  "job_type": "execute",
+  "ticket_id": "ticket-uuid",
+  "created_at": "2025-01-01T00:00:00Z",
+  "started_at": "2025-01-01T00:00:01Z"
+}
+```
+
+## Job States
+
+| State | Description |
+|-------|-------------|
+| `QUEUED` | Waiting to be picked up by the worker |
+| `RUNNING` | Currently executing |
+| `SUCCEEDED` | Completed successfully |
+| `FAILED` | Completed with errors |
+| `CANCELED` | Manually or automatically canceled |
+
+## Get Job Logs
+
+```bash
+curl http://localhost:8000/jobs/{id}/logs
+```
+
+Returns plain text log output from the job execution.
+
+## Stream Logs (WebSocket)
+
+```
+ws://localhost:8000/ws/jobs/{id}/logs
+```
+
+Real-time log streaming as the job executes.
+
+## Cancel a Job
+
+```bash
+curl -X POST http://localhost:8000/jobs/{id}/cancel
+```
+
+Best-effort cancellation. The job may complete before the cancel signal is processed.

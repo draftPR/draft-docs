@@ -1,0 +1,79 @@
+---
+title: "Claude Code"
+description: "Using Claude Code CLI as your AI executor"
+---
+
+## Setup
+
+Install the Claude Code CLI:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+Authenticate:
+
+```bash
+claude auth
+```
+
+## Configuration
+
+```yaml
+executor_config:
+  executor_type: CLAUDE
+  yolo_mode: false
+```
+
+## YOLO Mode
+
+By default, Claude Code asks for confirmation before running commands. **YOLO mode** skips these prompts for fully autonomous execution:
+
+```yaml
+executor_config:
+  executor_type: CLAUDE
+  yolo_mode: true
+  yolo_allowlist:
+    - /path/to/your/repo
+```
+
+<Warning>
+  YOLO mode gives the AI unrestricted command execution in the worktree. Only enable it for repositories you trust. The `yolo_allowlist` restricts which repo paths are allowed.
+</Warning>
+
+## How Draft Uses Claude Code
+
+When a ticket executes, Draft runs:
+
+```bash
+claude --headless --prompt "Implement the following ticket: ..."
+```
+
+The prompt includes:
+- Ticket title and description
+- Relevant context from the codebase
+- Instructions from the goal
+
+Claude Code then:
+1. Reads the codebase in the worktree
+2. Plans the implementation
+3. Makes code changes
+4. Exits when done
+
+## Log Streaming
+
+Job logs are streamed in real-time to the UI via WebSocket. You can watch Claude Code's reasoning and actions as they happen.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Nested session error">
+    If Claude Code fails with a "nested session" error when spawned from within Claude Code, Draft automatically strips the `CLAUDECODE` and `CLAUDE_CODE_ENTRYPOINT` environment variables to prevent this.
+  </Accordion>
+  <Accordion title="Authentication issues">
+    Run `claude auth` to re-authenticate. Ensure your API key or OAuth session is valid.
+  </Accordion>
+  <Accordion title="No changes produced">
+    If the agent exits without making changes, the ticket moves to `BLOCKED` with reason "no changes". This usually means the instructions need to be more specific.
+  </Accordion>
+</AccordionGroup>

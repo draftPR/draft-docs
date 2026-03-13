@@ -1,0 +1,94 @@
+---
+title: "Architecture"
+description: "Technical overview of Draft's internals"
+---
+
+## System Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐
+│   React + Vite  │────▶│  FastAPI Backend  │
+│   (Frontend)    │◀────│  (Port 8000)      │
+│   Port 5173     │ WS  │                   │
+└─────────────────┘     └──────┬───────────┘
+                               │
+                    ┌──────────┼──────────┐
+                    ▼          ▼          ▼
+              ┌──────────┐ ┌───────┐ ┌────────┐
+              │ SQLite   │ │Worker │ │Planner │
+              │ Database │ │(Jobs) │ │(Ticks) │
+              └──────────┘ └───┬───┘ └────────┘
+                               │
+                    ┌──────────┼──────────┐
+                    ▼          ▼          ▼
+              ┌──────────┐ ┌───────┐ ┌────────┐
+              │ Worktree │ │Claude │ │Cursor  │
+              │ Manager  │ │ CLI   │ │ CLI    │
+              └──────────┘ └───────┘ └────────┘
+```
+
+## Data Model
+
+```
+Board
+  ├─ Goals (1:N)
+  │    ├─ Tickets (1:N)
+  │    │    ├─ Jobs (1:N) → Evidence (1:N)
+  │    │    ├─ Revisions (1:N) → ReviewComments, ReviewSummary
+  │    │    ├─ TicketEvents (1:N)
+  │    │    └─ Workspace (1:1)
+  │    ├─ CostBudget (1:1)
+  │    └─ AgentSessions (1:N)
+  ├─ Jobs (1:N, denormalized)
+  └─ Workspaces (1:N, denormalized)
+```
+
+## Key Services
+
+| Service | File | Responsibility |
+|---------|------|----------------|
+| `SQLiteWorker` | `sqlite_worker.py` | Job queue runner (ThreadPoolExecutor) |
+| `PlannerService` | `planner_service.py` | Autopilot tick-based planning |
+| `ExecutorService` | `executor_service.py` | AI CLI spawning and management |
+| `WorkspaceService` | `workspace_service.py` | Git worktree lifecycle |
+| `DeliveryPipeline` | `delivery_pipeline.py` | Topological sort and dependency management |
+| `ConfigService` | `config_service.py` | `draft.yaml` parsing and defaults |
+| `LLMService` | `llm_service.py` | LLM API calls via LiteLLM |
+| `CleanupService` | `cleanup_service.py` | Stale worktree and resource cleanup |
+
+## Background Job System
+
+1. Frontend/planner calls `POST /tickets/{id}/run`
+2. Backend creates a `Job` record (`QUEUED`) and enqueues into `job_queue` table
+3. `SQLiteWorker` polls the queue, claims the task
+4. Job runs in an isolated worktree, streams logs via in-memory broadcaster
+5. Job result triggers ticket state transition
+
+### Periodic Tasks
+
+| Task | Interval | Purpose |
+|------|----------|---------|
+| Job Watchdog | 15s | Auto-cancels stuck jobs |
+| Planner Tick | 2s | Autopilot decision making |
+| PR Status Poll | 5min | Check PR merge status |
+
+## Async vs Sync Database
+
+- **FastAPI routes:** Async SQLAlchemy via `database.get_db()`
+- **Background worker:** Sync SQLAlchemy via `database_sync.get_sync_db()`
+- Models are shared but sessions differ
+- Use `db.expunge()` before passing objects between contexts
+
+## Middleware
+
+### Idempotency
+
+Atomic first-writer-wins via SQLite. Key includes `(client_id, route, resource_scope, idempotency_key)`. Returns `409 Conflict` for same key + different body.
+
+### Rate Limiting
+
+Cost-based budget per client for LLM endpoints. Tracks spending and enforces limits.
+
+### Security Headers
+
+Standard security headers (CSP, HSTS, X-Frame-Options) applied to all responses.

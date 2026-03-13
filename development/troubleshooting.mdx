@@ -1,0 +1,97 @@
+---
+title: "Troubleshooting"
+description: "Common issues and how to fix them"
+---
+
+## Installation Issues
+
+<AccordionGroup>
+  <Accordion title="Python version too old">
+    Draft requires Python 3.11+. Check your version:
+    ```bash
+    python3 --version
+    ```
+    Install a newer version from [python.org](https://www.python.org/) or via your package manager.
+  </Accordion>
+
+  <Accordion title="Node.js version too old">
+    Draft requires Node.js 18+. Check your version:
+    ```bash
+    node --version
+    ```
+    Install via [nvm](https://github.com/nvm-sh/nvm) or [nodejs.org](https://nodejs.org/).
+  </Accordion>
+
+  <Accordion title="Port already in use">
+    If port 8000 or 5173 is already in use:
+    ```bash
+    npx draft-board --port 9000 --frontend-port 5174
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Execution Issues
+
+<AccordionGroup>
+  <Accordion title="Claude CLI nested session error">
+    If Claude Code fails with a "nested session" error, it's because Draft is running inside Claude Code itself. Draft automatically strips the `CLAUDECODE` and `CLAUDE_CODE_ENTRYPOINT` environment variables to prevent this, but if you encounter it, restart Draft from a regular terminal.
+  </Accordion>
+
+  <Accordion title="Executor not found">
+    Make sure the CLI for your configured executor is in your PATH:
+    ```bash
+    which claude    # For Claude Code
+    which cursor    # For Cursor
+    ```
+    Install the CLI and try again.
+  </Accordion>
+
+  <Accordion title="No changes produced">
+    When the AI agent exits without making any code changes, the ticket moves to `BLOCKED` with reason "no changes". This usually means:
+    - The ticket instructions are too vague
+    - The agent couldn't understand the codebase
+    - The requested change was already implemented
+
+    Try editing the ticket with more specific instructions.
+  </Accordion>
+
+  <Accordion title="Verification fails">
+    Check the evidence panel for detailed stdout/stderr. Common causes:
+    - Tests not running in the worktree context
+    - Missing dependencies in the worktree
+    - Flaky tests unrelated to the changes
+  </Accordion>
+</AccordionGroup>
+
+## Configuration Issues
+
+<AccordionGroup>
+  <Accordion title="draft.yaml not found">
+    Draft looks for `draft.yaml` in the repository root (detected via git). If running from a subdirectory, it falls back to detecting the git root. Create the file at your repo root:
+    ```bash
+    touch draft.yaml
+    ```
+  </Accordion>
+
+  <Accordion title="Database migration errors">
+    Reset and re-run migrations:
+    ```bash
+    cd backend
+    rm -f draft.db draft.db-shm draft.db-wal
+    source venv/bin/activate
+    alembic upgrade head
+    ```
+  </Accordion>
+
+  <Accordion title="CORS errors">
+    Ensure `FRONTEND_URL` in `backend/.env` matches your frontend URL:
+    ```bash
+    FRONTEND_URL=http://localhost:5173
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+- **GitHub Issues:** [github.com/doramirdor/draft/issues](https://github.com/doramirdor/draft/issues)
+- **Security Issues:** See [SECURITY.md](https://github.com/doramirdor/draft/blob/main/SECURITY.md)

@@ -1,0 +1,79 @@
+---
+title: "Verification Pipeline"
+description: "Automated testing and linting for every ticket implementation"
+---
+
+## Overview
+
+After an AI agent implements a ticket, Draft runs a configurable verification pipeline to ensure the changes are correct before human review.
+
+## Configuration
+
+Define verification commands in `draft.yaml`:
+
+```yaml
+verify_config:
+  commands:
+    - "pytest tests/"
+    - "npm run lint"
+    - "npm run typecheck"
+```
+
+## How It Works
+
+1. A ticket moves to `VERIFYING` after successful execution
+2. Each command runs **sequentially** in the ticket's isolated worktree
+3. Commands **stop on first failure** — remaining commands are skipped
+4. **Evidence** is captured for every command (stdout, stderr, exit code)
+
+## Outcomes
+
+| Result | Ticket State | Next Step |
+|--------|-------------|-----------|
+| All commands pass | `NEEDS_HUMAN` | Human reviews the changes |
+| Any command fails | `BLOCKED` | Agent can retry or human intervenes |
+
+## Evidence
+
+Every verification command produces an `Evidence` record containing:
+
+- **stdout** — Standard output captured to a file
+- **stderr** — Standard error captured to a file
+- **exit code** — Command return code
+- **command** — The exact command that was run
+
+### Viewing Evidence
+
+In the UI, expand a ticket's detail panel to see evidence for each command:
+- Green checkmark = passed
+- Red X = failed (with exit code)
+
+### Evidence API
+
+```bash
+# List all evidence for a ticket
+curl http://localhost:8000/tickets/{id}/evidence
+
+# Get stdout for a specific evidence record
+curl http://localhost:8000/evidence/{id}/stdout
+
+# Get stderr for a specific evidence record
+curl http://localhost:8000/evidence/{id}/stderr
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Keep commands fast">
+    Verification runs on every iteration. Prefer targeted test suites over full test runs.
+  </Accordion>
+  <Accordion title="Include type checking">
+    AI-generated code can have type errors. Add `tsc --noEmit` or equivalent.
+  </Accordion>
+  <Accordion title="Use linting">
+    Catch formatting and style issues automatically with `ruff check`, `eslint`, etc.
+  </Accordion>
+  <Accordion title="Order matters">
+    Put fast-failing commands first (lint before tests) to get quicker feedback.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,81 @@
+---
+title: "Tickets API"
+description: "Manage tickets, state transitions, and execution"
+---
+
+## Create a Ticket
+
+```bash
+curl -X POST http://localhost:8000/tickets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "goal_id": "goal-uuid",
+    "title": "Add health endpoint",
+    "description": "Create a GET /health endpoint returning JSON status"
+  }'
+```
+
+## Get a Ticket
+
+```bash
+curl http://localhost:8000/tickets/{id}
+```
+
+## Transition State
+
+```bash
+curl -X POST http://localhost:8000/tickets/{id}/transition \
+  -H "Content-Type: application/json" \
+  -d '{"state": "planned"}'
+```
+
+Valid transitions follow the [state machine](/concepts/tickets-and-states).
+
+## Execute a Ticket
+
+```bash
+curl -X POST http://localhost:8000/tickets/{id}/run
+```
+
+Creates a job that spawns the AI executor in the ticket's worktree.
+
+**Response:**
+
+```json
+{
+  "id": "job-uuid",
+  "status": "queued",
+  "ticket_id": "ticket-uuid",
+  "job_type": "execute"
+}
+```
+
+## Verify a Ticket
+
+```bash
+curl -X POST http://localhost:8000/tickets/{id}/verify
+```
+
+Runs verification commands defined in `draft.yaml`.
+
+## Get Ticket Events
+
+```bash
+curl http://localhost:8000/tickets/{id}/events
+```
+
+Returns the full event history (state changes, comments, etc.).
+
+## List Jobs for a Ticket
+
+```bash
+curl http://localhost:8000/tickets/{id}/jobs
+```
+
+## Get Evidence for a Ticket
+
+```bash
+curl http://localhost:8000/tickets/{id}/evidence
+```
+
+Returns verification evidence (stdout, stderr, exit codes) for all jobs.

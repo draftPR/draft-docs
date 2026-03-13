@@ -1,0 +1,64 @@
+---
+title: "Boards & Goals"
+description: "Organize work around repositories and high-level objectives"
+---
+
+## Boards
+
+A **Board** is the top-level container in Draft, scoped to a single git repository. All operations — goals, tickets, jobs, workspaces — are scoped by board.
+
+- `board.repo_root` is the authoritative path for all file operations
+- Each board has its own configuration, goals, and tickets
+- Cascade deletes: removing a board removes all its goals, tickets, and jobs
+
+## Goals
+
+A **Goal** is a high-level objective described in plain English. Goals are the starting point for all work in Draft.
+
+### Creating a Goal
+
+From the UI, click **"New Goal"** and describe what you want to build:
+
+> "Add user authentication with JWT tokens, login/logout endpoints, and protected route middleware"
+
+Or via the API:
+
+```bash
+curl -X POST http://localhost:8000/goals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "User Authentication",
+    "description": "Add JWT-based auth with login/logout and protected routes"
+  }'
+```
+
+### Goal → Tickets
+
+Once a goal is created, Draft's ticket generation service breaks it into actionable tickets:
+
+1. **AI Analysis** — The LLM analyzes the goal and your codebase
+2. **Ticket Breakdown** — Creates specific, implementable tickets
+3. **Dependency Mapping** — Sets up blocking relationships between tickets
+4. **Priority Ordering** — Assigns priority based on dependency graph
+
+### Goal Status
+
+Goals track their overall progress based on ticket states:
+
+| Status | Meaning |
+|--------|---------|
+| `active` | Has tickets in progress |
+| `completed` | All tickets are done |
+| `blocked` | Has blocked tickets requiring attention |
+
+### Cost Budgets
+
+Each goal can have a cost budget to limit LLM spending:
+
+```bash
+curl -X POST http://localhost:8000/goals/{id}/budget \
+  -H "Content-Type: application/json" \
+  -d '{"max_cost_usd": 5.00}'
+```
+
+The planner respects these budgets and stops execution when limits are reached.

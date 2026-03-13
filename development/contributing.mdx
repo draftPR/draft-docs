@@ -1,0 +1,80 @@
+---
+title: "Contributing"
+description: "How to contribute to Draft"
+---
+
+## Getting Started
+
+```bash
+git clone https://github.com/doramirdor/draft.git
+cd draft
+make setup
+make db-migrate
+make run
+```
+
+## Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `make setup` | Install all dependencies |
+| `make run` | Start backend + frontend |
+| `make dev-backend` | FastAPI with hot reload |
+| `make dev-frontend` | Vite with HMR |
+| `make db-migrate` | Run Alembic migrations |
+| `make lint` | Run ruff + ESLint |
+| `make format` | Format with ruff + Prettier |
+
+## Code Style
+
+### Python (Backend)
+
+- **Ruff** for linting and formatting (88-char lines, double quotes)
+- Type hints required
+- Config in `backend/pyproject.toml`
+- `B008` is intentionally ignored (FastAPI `Depends()` pattern)
+
+### TypeScript (Frontend)
+
+- **ESLint** + **Prettier**
+- Components in `PascalCase.tsx`
+- Hooks start with `use`
+- Utilities in `camelCase.ts`
+
+## Testing
+
+```bash
+cd backend && source venv/bin/activate
+
+pytest tests -v                              # All tests
+pytest tests/test_middleware.py -v            # Specific file
+pytest tests/test_middleware.py::test_name -v # Specific test
+```
+
+- Tests use `asyncio_mode = "auto"` — no need for `@pytest.mark.asyncio`
+- Mock LLM calls to avoid API costs
+- Fixtures in `backend/tests/conftest.py`
+
+## Database Migrations
+
+```bash
+cd backend && source venv/bin/activate
+
+# Create a new migration
+alembic revision --autogenerate -m "description"
+
+# Apply migrations
+alembic upgrade head
+```
+
+## Pull Requests
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Run `make lint` and `make format`
+5. Submit a PR with a clear description
+
+## Security
+
+See [SECURITY.md](https://github.com/doramirdor/draft/blob/main/SECURITY.md) for reporting vulnerabilities.

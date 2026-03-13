@@ -1,0 +1,75 @@
+---
+title: "Merge Workflow"
+description: "Merging completed ticket branches into your main branch"
+---
+
+## Overview
+
+When a ticket is approved and moves to `DONE`, its changes live on an isolated branch (`goal/{goal_id}/ticket/{ticket_id}`). Draft provides tools to merge these changes back into your main branch.
+
+## Merge Checklist
+
+Before merging, Draft validates:
+
+- All verification commands passed
+- The revision is approved
+- No merge conflicts with the base branch
+- The branch is up to date
+
+## Merging via the UI
+
+1. Open a `DONE` ticket
+2. Click **"Merge"**
+3. Draft runs the merge checklist
+4. If all checks pass, the branch is merged
+
+## Merging via the API
+
+```bash
+# Check merge readiness
+curl http://localhost:8000/tickets/{id}/merge-checklist
+
+# Execute merge
+curl -X POST http://localhost:8000/tickets/{id}/merge
+```
+
+## Merge Strategy
+
+Configure the merge strategy in `draft.yaml`:
+
+```yaml
+merge_config:
+  strategy: merge    # merge, squash, or rebase
+```
+
+| Strategy | Description |
+|----------|-------------|
+| `merge` | Create a merge commit (preserves full history) |
+| `squash` | Squash all commits into one (clean history) |
+| `rebase` | Rebase onto base branch (linear history) |
+
+## Pull Request Integration
+
+Draft can create pull requests on GitHub/GitLab instead of direct merging:
+
+```bash
+# Create a PR for a completed ticket
+curl -X POST http://localhost:8000/tickets/{id}/pull-request
+```
+
+This creates a PR from the ticket's branch to the base branch, including:
+- Ticket title and description
+- Diff summary
+- Verification results
+
+## Handling Conflicts
+
+If merge conflicts are detected:
+
+1. The merge checklist flags the conflict
+2. You can resolve manually in the worktree
+3. Or send the ticket back to `EXECUTING` for the agent to resolve
+
+## Cleanup
+
+After a successful merge, the ticket's worktree is automatically cleaned up. The branch can optionally be deleted.

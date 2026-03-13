@@ -1,0 +1,41 @@
+---
+title: "Cursor Agent"
+description: "Using Cursor's Agent CLI for headless execution"
+---
+
+## Setup
+
+Install Cursor from [cursor.com](https://www.cursor.com/) and ensure the CLI is in your PATH.
+
+## Configuration
+
+### Headless Mode (Cursor Agent)
+
+```yaml
+executor_config:
+  executor_type: CURSOR_AGENT
+```
+
+Cursor Agent runs headlessly — no IDE window opens. The agent implements the ticket and exits.
+
+### Interactive Mode (Cursor IDE)
+
+```yaml
+executor_config:
+  executor_type: CURSOR
+```
+
+Interactive mode opens the Cursor IDE for each ticket. The ticket immediately moves to `NEEDS_HUMAN` since a human is expected to work alongside the agent.
+
+## Behavior Differences
+
+| Feature | CURSOR_AGENT | CURSOR |
+|---------|-------------|--------|
+| Headless | Yes | No |
+| Auto-verify | Yes | No |
+| Human interaction | None | Required |
+| Post-execution | → `VERIFYING` | → `NEEDS_HUMAN` |
+
+## Log Normalization
+
+Draft normalizes Cursor's log output into a structured format for easier reading in the UI. The `CursorLogNormalizer` service handles parsing Cursor's streaming output.
