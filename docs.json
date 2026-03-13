@@ -15,74 +15,94 @@
   "navbar": {
     "links": [
       {
-        "label": "GitHub",
-        "url": "https://github.com/doramirdor/draft"
+        "type": "github",
+        "href": "https://github.com/draftPR/draft"
       }
     ],
     "primary": {
       "type": "github",
-      "url": "https://github.com/doramirdor/draft"
+      "href": "https://github.com/draftPR/draft"
     }
   },
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "introduction",
-        "quickstart",
-        "configuration"
-      ]
-    },
-    {
-      "group": "Core Concepts",
-      "pages": [
-        "concepts/boards-and-goals",
-        "concepts/tickets-and-states",
-        "concepts/workspace-isolation",
-        "concepts/verification-pipeline",
-        "concepts/revisions-and-reviews"
-      ]
-    },
-    {
-      "group": "AI Executors",
-      "pages": [
-        "executors/overview",
-        "executors/claude-code",
-        "executors/cursor-agent",
-        "executors/other-executors"
-      ]
-    },
-    {
-      "group": "Guides",
-      "pages": [
-        "guides/your-first-ticket",
-        "guides/autopilot-mode",
-        "guides/ticket-dependencies",
-        "guides/merge-workflow"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview",
-        "api-reference/goals",
-        "api-reference/tickets",
-        "api-reference/jobs",
-        "api-reference/evidence"
-      ]
-    },
-    {
-      "group": "Development",
-      "pages": [
-        "development/architecture",
-        "development/contributing",
-        "development/troubleshooting"
-      ]
-    }
-  ],
+  "navigation": {
+    "dropdowns": [
+      {
+        "dropdown": "Guides",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "configuration"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/boards-and-goals",
+              "concepts/tickets-and-states",
+              "concepts/workspace-isolation",
+              "concepts/verification-pipeline",
+              "concepts/revisions-and-reviews"
+            ]
+          },
+          {
+            "group": "AI Executors",
+            "pages": [
+              "executors/overview",
+              "executors/claude-code",
+              "executors/cursor-agent",
+              "executors/other-executors"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/your-first-ticket",
+              "guides/autopilot-mode",
+              "guides/ticket-dependencies",
+              "guides/merge-workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "dropdown": "API Reference",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/goals",
+              "api-reference/tickets",
+              "api-reference/jobs",
+              "api-reference/evidence"
+            ]
+          }
+        ]
+      },
+      {
+        "dropdown": "Development",
+        "icon": "wrench",
+        "groups": [
+          {
+            "group": "Development",
+            "pages": [
+              "development/architecture",
+              "development/contributing",
+              "development/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "footer": {
     "socials": {
-      "github": "https://github.com/doramirdor/draft",
+      "github": "https://github.com/draftPR/draft",
       "website": "https://trydraft.dev"
     }
   },
